@@ -1,0 +1,45 @@
+{
+  "slug": "zaz",
+  "lead": "Zaz",
+  "person": "Murilo",
+  "pageTitle": "Uma coisa com a cara da Zaz · Camu",
+  "title": "Fiz uma coisa com a cara da Zaz",
+  "logo": {
+    "top": "zaz",
+    "bottom": "os",
+    "svg": null
+  },
+  "colors": {
+    "cream": "#F6EBD3",
+    "sand": "#E3CFA4",
+    "kraft": "#B98B5A",
+    "ink": "#2A211B",
+    "bolt": "#FFD25A"
+  },
+  "tools": [
+    { "label": "Planilha",   "icon": "sheet",    "color": "#D9593D" },
+    { "label": "Ponto",      "icon": "clock",    "color": "#E9B23A" },
+    { "label": "Calendário", "icon": "calendar", "color": "#2F8F83" },
+    { "label": "Pasta",      "icon": "folder",   "color": "#5B4B9A" }
+  ],
+  "text": {
+    "hintClosed": "Toque na caixa para abrir",
+    "hintPlay": "Arraste cada bloco para o encaixe da cor dele",
+    "hintWrong": "Esse encaixe é de outra cor",
+    "headline": "Quatro ferramentas, um sistema.",
+    "body": "A Camu faz isso em objeto, para os leads da Zaz que estão decidindo.",
+    "case": "Uma plataforma B2B mandou baús com a logo de cada cliente para leads quase fechando e recomprou com 100 unidades.",
+    "ctaPiece": "Quero a peça física",
+    "ctaTalk": "Conversar 15 minutos",
+    "formTitle": "Para onde mando?",
+    "formName": "Nome",
+    "formAddress": "Endereço de entrega",
+    "formSend": "Enviar",
+    "formNote": "Só isso. Sem cadastro, sem lista de e-mail.",
+    "thanks": "Anotado. A peça sai da Camu, em São José dos Campos.",
+    "agendaMissing": "Agenda ainda não configurada."
+  },
+  "agendaUrl": "",
+  "formEndpoint": "",
+  "eventsEndpoint": ""
+}
