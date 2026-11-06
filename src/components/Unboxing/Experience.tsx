@@ -1,12 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
-import type { LeadData, Stage } from "@/lib/types";
+import type { LeadData, Piece, Stage } from "@/lib/types";
 import { track } from "@/lib/track";
-import RequestSheet from "./RequestSheet";
-import Pricing from "./Pricing";
+import Reveal, { type Other } from "./Reveal";
 
 const Scene = dynamic(() => import("./Scene"), { ssr: false });
 
@@ -18,17 +17,20 @@ export function themeVars(t: LeadData["theme"]): CSSProperties {
 }
 
 /** Experiência padrão: caixa 3D → montagem → revelação. Totalmente guiada por `lead`. */
-export default function Experience({ lead }: { lead: LeadData }) {
+export default function Experience({ lead: base, piece, other }: { lead: LeadData; piece?: Piece; other?: Other }) {
+  // com `piece`, os blocos e os textos da peça substituem os do lead
+  const lead = useMemo<LeadData>(
+    () => ({ ...base, tools: piece?.tools ?? base.tools, copy: { ...base.copy, ...piece?.copy } }),
+    [base, piece],
+  );
   const { copy, tools } = lead;
   const [stage, setStage] = useState<Stage>("closed");
   const [placed, setPlaced] = useState([false, false, false, false]);
-  const [sheet, setSheet] = useState(false);
   const [toast, setToast] = useState("");
   const [font, setFont] = useState("");
   const [gl, setGl] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [side, setSide] = useState(false);
-  const [step, setStep] = useState<"story" | "buy">("story");
   const [heroBottom, setHeroBottom] = useState(0);
   const heroRef = useRef<HTMLElement>(null);
   const toastT = useRef<number>(0);
@@ -60,7 +62,7 @@ export default function Experience({ lead }: { lead: LeadData }) {
   }, []);
 
   useEffect(() => {
-    track(lead.slug, "open_link");
+    if (!piece) track(lead.slug, "open_link"); // com peça, quem conta a abertura é a tela de escolha
     setFont(getComputedStyle(document.body).getPropertyValue("--font-display").trim());
     const c = document.createElement("canvas");
     if (!c.getContext("webgl2") && !c.getContext("webgl")) { setGl(false); setStage("done"); }
@@ -78,7 +80,7 @@ export default function Experience({ lead }: { lead: LeadData }) {
     mq.addEventListener("change", sync);
     setMounted(true);
     return () => mq.removeEventListener("change", sync);
-  }, [lead.slug]);
+  }, [lead.slug, piece?.id]);
 
   // celular: mede o texto do topo para a caixa ficar abaixo dele, sem sobrepor
   useEffect(() => {
@@ -93,29 +95,15 @@ export default function Experience({ lead }: { lead: LeadData }) {
 
   useEffect(() => {
     if (stage !== "play" || !placed.every(Boolean)) return;
-    const id = setTimeout(() => { setStage("done"); track(lead.slug, "reveal"); }, 800);
+    const id = setTimeout(() => { setStage("done"); track(lead.slug, "reveal", piece?.id); }, 800);
     return () => clearTimeout(id);
-  }, [placed, stage, lead.slug]);
+  }, [placed, stage, lead.slug, piece?.id]);
 
-  const onOpen = useCallback(() => { setStage("opening"); track(lead.slug, "box_open"); }, [lead.slug]);
+  const onOpen = useCallback(() => { setStage("opening"); track(lead.slug, "box_open", piece?.id); }, [lead.slug, piece?.id]);
   // a caixa terminou de abrir: segura 1,5 s para dar tempo de ler antes da montagem
   const onReady = useCallback(() => { window.setTimeout(() => setStage((s) => (s === "opening" ? "play" : s)), 800); }, []);
   const onPlaced = useCallback((i: number) => { setLast(i); setPlaced((p) => p.map((v, k) => (k === i ? true : v))); }, []);
   const onWrong = useCallback(() => say(copy.hintWrong), [say, copy.hintWrong]);
-
-  const talk = () => {
-    track(lead.slug, "request_talk");
-    lead.links.agenda ? window.open(lead.links.agenda, "_blank", "noopener") : say(copy.agendaMissing);
-  };
-  const piece = () => { track(lead.slug, "request_piece"); setSheet(true); };
-
-  // feature flag por lead (`pricing.show`); em dev, ?pricing=1|0 força para testar
-  let showPricing = !!lead.pricing?.show && !!lead.pricing.tiers.length;
-  if (process.env.NODE_ENV === "development" && mounted) {
-    const q = new URLSearchParams(location.search).get("pricing");
-    if (q === "1") showPricing = !!lead.pricing?.tiers.length;
-    if (q === "0") showPricing = false;
-  }
 
   const hint = stage === "closed" ? copy.hintClosed : stage === "play" ? copy.hintPlay : "";
   const rep = stage === "play" && last !== null ? tools[last] : null;
@@ -178,75 +166,7 @@ export default function Experience({ lead }: { lead: LeadData }) {
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {stage === "done" && (
-          <div className="reveal">
-            <motion.section className="card glass" aria-live="polite"
-              initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ type: "spring", damping: 24, stiffness: 120, delay: 0.5 }}>
-              <AnimatePresence mode="wait" initial={false}>
-                {step === "story" || !showPricing || !lead.pricing ? (
-                  <motion.div key="story" exit={{ opacity: 0, x: -16 }} transition={{ duration: 0.18 }}>
-                    <h2>
-                      {copy.headline.split(" ").map((w, i) => (
-                        <motion.span key={i} className="word" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.75 + i * 0.07 }}>{w}&nbsp;</motion.span>
-                      ))}
-                    </h2>
-                    <motion.p className="body" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.1 }}>{copy.body}</motion.p>
-                    {copy.legacy && (
-                      <motion.div className="legacy" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }}>
-                        {copy.legacyTitle && <h3>{copy.legacyTitle}</h3>}
-                        <ul>{copy.legacy.map((l, i) => <li key={i}>{l}</li>)}</ul>
-                      </motion.div>
-                    )}
-                    {copy.caseStudy && (
-                      <motion.blockquote className="case" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.3 }}>
-                        <p>{copy.caseStudy}</p>
-                      </motion.blockquote>
-                    )}
-                    <motion.div className="btns" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.5 }}>
-                      {showPricing && lead.pricing ? (
-                        <button className="btn primary" onClick={() => { setStep("buy"); }}>
-                          Ver preços →
-                        </button>
-                      ) : (
-                        <>
-                          <button className="btn primary" onClick={piece}>{copy.ctaPiece}</button>
-                          <button className="btn" onClick={talk}>{copy.ctaTalk}</button>
-                        </>
-                      )}
-                    </motion.div>
-                  </motion.div>
-                ) : (
-                  <motion.div key="buy" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
-                    <button className="back" onClick={() => setStep("story")}>← Voltar</button>
-                    <Pricing data={lead.pricing} />
-                    <div className="btns">
-                      <button className="btn primary" onClick={piece}>{copy.ctaPiece}</button>
-                      <button className="link" onClick={talk}>{copy.ctaTalk}</button>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              <p className="foot">
-                Camu · kits físicos personalizados
-                {lead.links.site && (
-                  <>
-                    {" · "}
-                    <a href={lead.links.site} target="_blank" rel="noopener noreferrer">
-                      {lead.links.site.replace(/^https?:\/\//, "").replace(/\/$/, "")}
-                    </a>
-                  </>
-                )}
-              </p>
-            </motion.section>
-          </div>
-        )}
-      </AnimatePresence>
-
-      <RequestSheet lead={lead} open={sheet} onClose={() => setSheet(false)}
-        onDone={() => { setSheet(false); say(copy.thanks); }} />
+      {stage === "done" && <Reveal lead={lead} piece={piece} copy={copy} say={say} other={other} />}
     </main>
   );
 }

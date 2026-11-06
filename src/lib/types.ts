@@ -108,6 +108,8 @@ export interface OnDemand {
 }
 
 export interface Pricing {
+  /** unidade vendida (padrão: "peça"); ex.: "combo" */
+  unit?: string;
   /** feature flag do lead: false esconde a tabela na tela final */
   show: boolean;
   /** faixas de atacado, da menor para a maior quantidade */
@@ -122,6 +124,70 @@ export interface Pricing {
   onDemand?: OnDemand;
 }
 
+export type PieceKind = "assemble" | "light";
+
+/** Peça "acenda": negatoscópio com calendário que se preenche (fluxo `kind: "light"`). */
+export interface LightConfig {
+  /** título gravado na chapa */
+  title: string;
+  /** nome do mês na chapa */
+  month: string;
+  /** dia da semana do dia 1 (0 = domingo) */
+  startDay: number;
+  /** dias do mês */
+  days: number;
+  /** dias úteis que ficam livres (a "vaga") */
+  free: number[];
+  /** texto do clipe no topo */
+  clip: string;
+  /** cartão que chega na caixa: uma palavra só */
+  card: string;
+  /** frente do cartão após acender (o que a agenda mostra) */
+  litLine: string;
+  /** verso do cartão: fecha a ideia */
+  cardBack: string;
+  /** dica antes de acender */
+  emptyLine: string;
+  hintLight: string;
+  /** botão que leva à tela final */
+  next: string;
+}
+
+/** Uma das peças oferecidas ao lead. Cada uma tem o seu fluxo de unboxing e a sua tabela de preço. */
+export interface Piece {
+  id: string;
+  name: string;
+  /** nome curto (abas de preço); padrão: name */
+  short?: string;
+  /** "assemble": arrastar 4 blocos para os encaixes · "light": abrir, acender, ver a agenda encher */
+  kind: PieceKind;
+  /** frase no cartão da tela de escolha */
+  teaser: string;
+  /** (assemble) os 4 blocos */
+  tools?: [Tool, Tool, Tool, Tool];
+  /** (light) conteúdo da peça */
+  light?: LightConfig;
+  /** textos que sobrescrevem os do lead nesta peça */
+  copy?: Partial<Copy>;
+  pricing: Pricing;
+}
+
+/** Compra das duas (ou mais) peças juntas, com tabela própria. */
+export interface Combo {
+  label: string;
+  /** o que vem no combo */
+  description: string;
+  pricing: Pricing;
+}
+
+/** Tela de escolha entre as peças. */
+export interface Picker {
+  eyebrow: string;
+  title: string;
+  body: string;
+  hint: string;
+}
+
 /** Dados serializáveis de um lead (vão do servidor para o cliente). */
 export interface LeadData {
   slug: string;
@@ -134,6 +200,10 @@ export interface LeadData {
   copy: Copy;
   /** (opcional) preço por peça e faixas de atacado na tela final; controlado por `pricing.show` */
   pricing?: Pricing;
+  /** (opcional) várias peças, cada uma com seu fluxo e preço; troca a experiência por uma tela de escolha */
+  pieces?: Piece[];
+  combo?: Combo;
+  picker?: Picker;
   /** agenda: link do botão "Conversar"; site: link da Camu no rodapé */
   links: { agenda?: string; site?: string };
 }

@@ -31,11 +31,11 @@ export const defaultCopy = (name: string): Copy => ({
   ctaPiece: "Quero a peça física",
   ctaTalk: "Conversar 15 minutos",
   formTitle: "Para onde mando?",
-  formName: "Nome",
+  formName: "Nome da empresa",
   formAddress: "Endereço de entrega",
   formSend: "Enviar",
   formNote: "Só isso. Sem cadastro, sem lista de e-mail.",
-  thanks: "Anotado. A peça sai da Camu, em São José dos Campos.",
+  thanks: "Abrimos o WhatsApp com o seu pedido. É só enviar a mensagem.",
   agendaMissing: "Agenda ainda não configurada.",
 });
 
@@ -51,6 +51,10 @@ export interface LeadInput {
   links?: LeadData["links"];
   /** preço por peça / atacado; `show: false` (ou omitido) esconde na tela final */
   pricing?: LeadData["pricing"];
+  /** várias peças (fluxos e preços próprios), combo e tela de escolha */
+  pieces?: LeadData["pieces"];
+  combo?: LeadData["combo"];
+  picker?: LeadData["picker"];
   /** substitui a experiência padrão por uma página totalmente customizada */
   Page?: ComponentType<{ lead: LeadData }>;
 }
@@ -67,6 +71,9 @@ export function defineLead(i: LeadInput): Lead {
     theme: { ...defaultTheme, ...i.theme },
     copy,
     pricing: i.pricing,
+    pieces: i.pieces,
+    combo: i.combo,
+    picker: i.picker,
     meta: {
       title: i.meta?.title ?? `${i.name} · Unboxing`,
       description: i.meta?.description ?? "Abra a caixa. Leva menos de um minuto.",

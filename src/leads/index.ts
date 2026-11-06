@@ -1,9 +1,11 @@
 import type { Lead } from "@/lib/types";
 import zazos from "./zazos";
+import gct from "./gct";
 // @leads:import
 
 const all: Lead[] = [
   zazos,
+  gct,
   // @leads:register
 ];
 

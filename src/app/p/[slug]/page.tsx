@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getLead, leadSlugs } from "@/leads";
 import Experience from "@/components/Unboxing/Experience";
+import MultiExperience from "@/components/Unboxing/MultiExperience";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -24,6 +25,6 @@ export default async function LeadPage({ params }: Props) {
   if (!lead) notFound();
   // `Page` é um componente (não serializável): fica no servidor e recebe só os dados.
   const { Page, ...data } = lead;
-  const View = Page ?? Experience;
+  const View = Page ?? (data.pieces?.length ? MultiExperience : Experience);
   return <View lead={data} />;
 }

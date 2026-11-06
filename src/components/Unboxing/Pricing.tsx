@@ -6,8 +6,8 @@ import type { PriceTier, Pricing as PricingData } from "@/lib/types";
 
 const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
-const qty = (t: PriceTier) =>
-  t.max === undefined ? `${t.min}+ peças` : t.min === t.max ? `${t.min} peça${t.min > 1 ? "s" : ""}` : `${t.min} a ${t.max} peças`;
+const qty = (t: PriceTier, unit = "peça") =>
+  t.max === undefined ? `${t.min}+ ${unit}s` : t.min === t.max ? `${t.min} ${unit}${t.min > 1 ? "s" : ""}` : `${t.min} a ${t.max} ${unit}s`;
 
 function useCountdown(endsAt?: string) {
   const end = endsAt ? new Date(endsAt).getTime() : NaN;
@@ -40,13 +40,13 @@ function Timer({ ms }: { ms: number }) {
   );
 }
 
-function Row({ t, i, promo }: { t: PriceTier; i: number; promo: boolean }) {
+function Row({ t, i, promo, unit }: { t: PriceTier; i: number; promo: boolean; unit?: string }) {
   const d = 0.2 + i * 0.25; // cada linha anima em sequência
   const cut = promo && t.was !== undefined && t.was > t.price;
   const shown = promo ? t.price : t.was ?? t.price;
   return (
     <li>
-      <span className="qty">{qty(t)}</span>
+      <span className="qty">{qty(t, unit)}</span>
       <span className="amount">
         {cut && (
           <span className="was">
@@ -71,7 +71,7 @@ function Row({ t, i, promo }: { t: PriceTier; i: number; promo: boolean }) {
 }
 
 /** Tabela de preço por peça com desconto animado, timer e modo sob demanda. */
-export default function Pricing({ data }: { data: PricingData }) {
+export function PricingTable({ data }: { data: PricingData }) {
   const [mode, setMode] = useState<"stock" | "demand">("stock");
   const left = useCountdown(data.promo?.endsAt);
   const promo = !!data.promo && left !== null && left > 0;
@@ -87,7 +87,7 @@ export default function Pricing({ data }: { data: PricingData }) {
         <div className="seg" role="tablist">
           {(["stock", "demand"] as const).map((m) => (
             <button key={m} role="tab" aria-selected={mode === m} className={mode === m ? "on" : ""} onClick={() => setMode(m)}>
-              {mode === m && <motion.span layoutId="seg-pill" className="pill" transition={{ type: "spring", damping: 26, stiffness: 320 }} />}
+              {mode === m && <motion.span layoutId={`seg-${data.title ?? "p"}`} className="pill" transition={{ type: "spring", damping: 26, stiffness: 320 }} />}
               <span className="lbl">{m === "stock" ? "Em lote" : od.label ?? "Sob demanda"}</span>
             </button>
           ))}
@@ -104,7 +104,7 @@ export default function Pricing({ data }: { data: PricingData }) {
 
       <AnimatePresence mode="wait">
         <motion.ul key={mode + String(promo)} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
-          {tiers.map((t, i) => <Row key={i} t={t} i={i} promo={promo} />)}
+          {tiers.map((t, i) => <Row key={i} t={t} i={i} promo={promo} unit={data.unit} />)}
         </motion.ul>
       </AnimatePresence>
 
@@ -112,3 +112,26 @@ export default function Pricing({ data }: { data: PricingData }) {
     </div>
   );
 }
+
+export interface SuiteTab { id: string; label: string; data: PricingData; intro?: string }
+
+/** Abas por peça + combo; cada aba tem a sua tabela (em lote / sob demanda). */
+export function PricingSuite({ tabs, active, onTab }: { tabs: SuiteTab[]; active: string; onTab: (id: string) => void }) {
+  const cur = tabs.find((t) => t.id === active) ?? tabs[0];
+  return (
+    <div className="pricing suite">
+      <div className="seg tabs" role="tablist" aria-label="O que você quer pedir">
+        {tabs.map((t) => (
+          <button key={t.id} role="tab" aria-selected={cur.id === t.id} className={cur.id === t.id ? "on" : ""} onClick={() => onTab(t.id)}>
+            {cur.id === t.id && <motion.span layoutId="suite-pill" className="pill" transition={{ type: "spring", damping: 26, stiffness: 320 }} />}
+            <span className="lbl">{t.label}</span>
+          </button>
+        ))}
+      </div>
+      {cur.intro && <p className="pnote">{cur.intro}</p>}
+      <PricingTable key={cur.id} data={cur.data} />
+    </div>
+  );
+}
+
+export default PricingTable;

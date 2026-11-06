@@ -27,6 +27,14 @@ Só `slug`, `name`, `logo` e `tools` são obrigatórios; o resto herda defaults 
 | Ícones | `sheet clock calendar folder chart chat mail code users card` (novos em `components/Unboxing/textures.ts`) |
 | Página própria | `Page: MeuComponente` no lead: substitui a experiência inteira (pode reusar `Experience`) |
 
+## Lead com várias peças (ex.: `gct`)
+Com `pieces` no lead, `/p/<slug>` abre uma tela de escolha e cada peça roda o seu fluxo (`kind`):
+- `assemble`: caixa 3D, arrastar 4 blocos (`tools`) para os encaixes.
+- `light`: caixa → cartão → arrastar a luz → agenda se preenche (`light`).
+
+Cada peça tem o seu `pricing` (em lote + sob demanda); `combo` adiciona a aba de combo. Flag `show` em cada um;
+em dev, `?pricing=1` força a tabela e `?piece=<id>&step=play|done` pula etapas. Exemplo: `src/leads/gct/index.ts`.
+
 ## Dados
 - `POST /api/event` → `data/events.jsonl` (`open_link, box_open, reveal, request_piece, submit_piece, request_talk`)
 - `POST /api/request` → `data/requests.jsonl` (nome e endereço do pedido da peça)
