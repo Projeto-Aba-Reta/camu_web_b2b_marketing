@@ -32,9 +32,9 @@ export default function Reveal({ lead, piece, copy, say, other }: {
   const [step, setStep] = useState<"story" | "buy">("story");
   const [sheet, setSheet] = useState(false);
   const [force, setForce] = useState(false);
-  // em dev, ?pricing=1 mostra a tabela mesmo com `show: false`
+  // ?pricing=1 mostra a tabela mesmo com `show: false` (também em produção, para pré-visualizar)
   useEffect(() => {
-    if (process.env.NODE_ENV === "development") setForce(new URLSearchParams(location.search).get("pricing") === "1");
+    setForce(new URLSearchParams(location.search).get("pricing") === "1");
   }, []);
 
   const { tabs, initial } = useTabs(lead, piece, force);

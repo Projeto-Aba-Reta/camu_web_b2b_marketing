@@ -33,7 +33,7 @@ Com `pieces` no lead, `/p/<slug>` abre uma tela de escolha e cada peça roda o s
 - `light`: caixa → cartão → arrastar a luz → agenda se preenche (`light`).
 
 Cada peça tem o seu `pricing` (em lote + sob demanda); `combo` adiciona a aba de combo. Flag `show` em cada um;
-em dev, `?pricing=1` força a tabela e `?piece=<id>&step=play|done` pula etapas. Exemplo: `src/leads/gct/index.ts`.
+`?pricing=1` força a tabela (inclusive em produção) e, em dev, `?piece=<id>&step=play|done` pula etapas. Exemplo: `src/leads/gct/index.ts`.
 
 ## Dados
 - `POST /api/event` → `data/events.jsonl` (`open_link, box_open, reveal, request_piece, submit_piece, request_talk`)

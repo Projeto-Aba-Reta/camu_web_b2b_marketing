@@ -13,7 +13,7 @@ import type { Piece, Pricing, Tool } from "@/lib/types";
 
 // Flag de preço: mude para true quando os valores abaixo forem os reais.
 // PROVISÓRIO: âncoras do PDF (lote de 20: Roda R$100, Raio-X ~R$180, custos [ESTIMATIVA]); o resto é placeholder.
-// Em dev, /p/gct?pricing=1 força a exibição.
+// /p/gct?pricing=1 força a exibição (dev e produção).
 const SHOW_PRICING = false;
 
 const roda: Tool[] = [
