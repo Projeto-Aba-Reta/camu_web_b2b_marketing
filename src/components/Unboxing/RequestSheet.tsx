@@ -78,8 +78,6 @@ export default function RequestSheet({
   }
 
   const locked = cepState !== "ok" && cepState !== "error" && cepState !== "notfound";
-  // CEP genérico (sem rua) ou sem resposta: deixa digitar a rua
-  const manual = cepState === "error" || cepState === "notfound" || (cepState === "ok" && !addr.street);
 
   return (
     <AnimatePresence>
@@ -99,32 +97,30 @@ export default function RequestSheet({
               <input name="cep" required inputMode="numeric" autoComplete="postal-code" placeholder="00000-000"
                 value={cep} onChange={(e) => setCep(maskCep(e.target.value))} pattern="\d{5}-?\d{3}" />
               {cepState === "loading" && <small className="cep">Buscando endereço…</small>}
-              {cepState === "ok" && addr.street && <small className="cep ok">{addr.street}, {addr.district} · {addr.city}/{addr.uf}</small>}
-              {cepState === "notfound" && <small className="cep">CEP não encontrado. Digite o endereço abaixo.</small>}
-              {cepState === "error" && <small className="cep">Não consegui consultar o CEP. Digite o endereço abaixo.</small>}
+              {cepState === "ok" && <small className="cep ok">Endereço preenchido. Corrija os campos abaixo se algo estiver errado.</small>}
+              {cepState === "notfound" && <small className="cep">CEP não encontrado. Preencha o endereço abaixo.</small>}
+              {cepState === "error" && <small className="cep">Não consegui consultar o CEP. Preencha o endereço abaixo.</small>}
             </label>
-            {manual && (
-              <>
-                <label><span>Rua</span>
-                  <input required maxLength={120} value={addr.street} onChange={(e) => setAddr({ ...addr, street: e.target.value })} />
-                </label>
-                <div className="row2">
-                  <label><span>Bairro</span>
-                    <input maxLength={80} value={addr.district} onChange={(e) => setAddr({ ...addr, district: e.target.value })} />
-                  </label>
-                  <label><span>Cidade/UF</span>
-                    <input required maxLength={80} value={addr.city && addr.uf ? `${addr.city}/${addr.uf}` : addr.city}
-                      onChange={(e) => { const [c, u = ""] = e.target.value.split("/"); setAddr({ ...addr, city: c, uf: u }); }} />
-                  </label>
-                </div>
-              </>
-            )}
+            <label><span>Rua</span>
+              <input required maxLength={120} autoComplete="off" disabled={locked} value={addr.street} onChange={(e) => setAddr({ ...addr, street: e.target.value })} />
+            </label>
             <div className="row2">
               <label><span>Número</span>
                 <input name="number" required maxLength={12} autoComplete="off" disabled={locked} />
               </label>
               <label><span>Complemento</span>
                 <input name="complement" maxLength={60} autoComplete="off" disabled={locked} />
+              </label>
+            </div>
+            <label><span>Bairro</span>
+              <input maxLength={80} autoComplete="off" disabled={locked} value={addr.district} onChange={(e) => setAddr({ ...addr, district: e.target.value })} />
+            </label>
+            <div className="row2 city">
+              <label><span>Cidade</span>
+                <input required maxLength={80} autoComplete="off" disabled={locked} value={addr.city} onChange={(e) => setAddr({ ...addr, city: e.target.value })} />
+              </label>
+              <label><span>UF</span>
+                <input required maxLength={2} autoComplete="off" disabled={locked} value={addr.uf} onChange={(e) => setAddr({ ...addr, uf: e.target.value.toUpperCase() })} />
               </label>
             </div>
             <button className="btn primary" disabled={busy || locked}>Pedir pelo WhatsApp</button>

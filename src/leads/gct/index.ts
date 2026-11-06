@@ -16,6 +16,12 @@ import type { Piece, Pricing, Tool } from "@/lib/types";
 // /p/gct?pricing=1 força a exibição (dev e produção).
 const SHOW_PRICING = false;
 
+// Black November: os preços abaixo são os PROMOCIONAIS (os do PDF); o preço "de" (riscado) é ~25% acima, arredondado a R$5.
+// Assim a promo não derruba a margem: ela só mostra o desconto sobre uma tabela cheia.
+const promo = { label: "Black November", reason: "Desconto de novembro, por tempo limitado.", endsAt: "2026-11-30T23:59:59-03:00" };
+const off = (price: number) => Math.ceil((price * 1.25) / 5) * 5;
+const tier = (min: number, max: number | undefined, price: number) => ({ min, ...(max ? { max } : {}), price, was: off(price) });
+
 const roda: Tool[] = [
   { label: "Atração", icon: "users", color: "#2BA08F",
     represents: "Quem ainda não conhece o cliente passa a enxergá-lo.",
@@ -35,14 +41,15 @@ const rodaPricing: Pricing = {
   show: SHOW_PRICING,
   title: "Preço por Roda",
   tiers: [
-    { min: 1, max: 9, price: 125 },
-    { min: 10, max: 19, price: 110 },
-    { min: 20, price: 100 },
+    tier(1, 9, 125),
+    tier(10, 19, 110),
+    tier(20, undefined, 100),
   ],
+  promo,
   onDemand: {
     label: "Sob demanda",
     description: "Sem estoque: a cada novo cliente seu, compramos 1 Roda e enviamos.",
-    tiers: [{ min: 1, price: 140 }],
+    tiers: [tier(1, undefined, 140)],
   },
   note: "Preço por peça, com o nome ou a logo do cliente no centro.",
 };
@@ -51,14 +58,15 @@ const raioxPricing: Pricing = {
   show: SHOW_PRICING,
   title: "Preço por Raio-X",
   tiers: [
-    { min: 1, max: 9, price: 230 },
-    { min: 10, max: 19, price: 200 },
-    { min: 20, price: 180 },
+    tier(1, 9, 230),
+    tier(10, 19, 200),
+    tier(20, undefined, 180),
   ],
+  promo,
   onDemand: {
     label: "Sob demanda",
     description: "Sem estoque: a cada novo cliente seu, compramos 1 Raio-X e enviamos.",
-    tiers: [{ min: 1, price: 250 }],
+    tiers: [tier(1, undefined, 250)],
   },
   note: "Preço por peça, com título, mês e clipe personalizados. Chapa do mês seguinte à parte.",
 };
@@ -152,14 +160,15 @@ export default defineLead({
       unit: "combo",
       title: "Preço por combo",
       tiers: [
-        { min: 1, max: 9, price: 330 },
-        { min: 10, max: 19, price: 290 },
-        { min: 20, price: 260 },
+        tier(1, 9, 330),
+        tier(10, 19, 290),
+        tier(20, undefined, 260),
       ],
+      promo,
       onDemand: {
         label: "Sob demanda",
         description: "Sem estoque: a cada novo cliente seu, compramos 1 combo e enviamos.",
-        tiers: [{ min: 1, price: 360 }],
+        tiers: [tier(1, undefined, 360)],
       },
       note: "Menos do que comprar as duas peças separadas.",
     },
