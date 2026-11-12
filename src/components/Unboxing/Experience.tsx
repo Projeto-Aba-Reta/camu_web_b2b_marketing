@@ -8,6 +8,7 @@ import { track } from "@/lib/track";
 import Reveal, { type Other } from "./Reveal";
 
 const Scene = dynamic(() => import("./Scene"), { ssr: false });
+const WheelScene = dynamic(() => import("./WheelScene"), { ssr: false });
 
 export function themeVars(t: LeadData["theme"]): CSSProperties {
   return {
@@ -113,11 +114,15 @@ export default function Experience({ lead: base, piece, other }: { lead: LeadDat
       <div className="bg" aria-hidden />
       <div className="grain" aria-hidden />
 
-      {gl && mounted && (
+      {gl && mounted && (piece?.model === "wheel" ? (
+        <WheelScene lead={lead} stage={stage} fontFamily={font} placed={placed} center={piece.center ?? lead.name}
+          onOpen={onOpen} onReady={onReady} onPlaced={onPlaced} onWrong={onWrong} onHover={setHover}
+          side={side} inset={stage === "done" ? 0 : heroBottom} />
+      ) : (
         <Scene lead={lead} stage={stage} fontFamily={font} placed={placed}
           onOpen={onOpen} onReady={onReady} onPlaced={onPlaced} onWrong={onWrong} onHover={setHover}
           side={side} inset={stage === "done" ? 0 : heroBottom} />
-      )}
+      ))}
 
       {hover !== null && tools[hover].meaning && (
         <div key={hover} ref={tipRef} className="tip" role="tooltip" style={{ "--tip": tools[hover].color } as CSSProperties}>

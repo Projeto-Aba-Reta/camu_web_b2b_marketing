@@ -196,6 +196,8 @@ button { font: inherit; color: inherit; }
   background: conic-gradient(#2BA08F 0 25%, #9BAE8C 0 50%, #F4C04E 0 75%, #C96A4B 0);
   box-shadow: 0 8px 24px rgba(0,0,0,.35); animation: spin 14s linear infinite;
 }
+.pick-art.assemble i::after { content: ""; position: absolute; width: 34px; height: 34px; border-radius: 50%; background: #F6EBD3; box-shadow: 0 2px 6px rgba(0,0,0,.3); }
+.pick-art.assemble i { position: relative; display: grid; place-items: center; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .pick-art.light { grid-template-columns: repeat(5, 1fr); gap: 3px; padding: 8px; border-radius: 10px; background: #1a1816; border: 3px solid #E9DFC8; width: 104px; height: 80px; align-content: center; margin-block: 6px; }
 .pick-art.light i { height: 12px; border-radius: 2px; background: #cdbf9f; animation: flick 2.4s ease-in-out infinite; }

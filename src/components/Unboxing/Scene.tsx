@@ -6,6 +6,10 @@ import { Environment, Lightformer, RoundedBox, Sparkles } from "@react-three/dre
 import * as THREE from "three";
 import type { LeadData, Stage } from "@/lib/types";
 import { buildTextures, type Textures } from "./textures";
+import { loadZazosParts, type ZazosParts } from "./zazosModel";
+
+/** leads com modelo 3D próprio (.obj em public/leads/<slug>) no lugar da geometria procedural */
+const OBJ_LEADS = new Set(["zazos"]);
 
 /* ---------- geometria compartilhada (1 unidade = 1 bloco) ---------- */
 const TRAY = new THREE.Vector3(0, 0, -1.2);
@@ -15,7 +19,7 @@ const SLOTS = OFFS.map(([x, z]) => new THREE.Vector3(TRAY.x + x, 0.21, TRAY.z + 
 // posições de repouso: sempre fora da bandeja (|dz| ≥ 1.66) e sem se sobrepor
 const SCATTER: [number, number, number][] = [[-0.8, 1.8, 0.4], [0.85, 1.75, -0.3], [-0.7, 3.0, -0.5], [0.8, 2.95, 0.35]];
 const PITCH = THREE.MathUtils.degToRad(58);
-const FOV = 34;
+export const FOV = 34;
 const { damp, clamp } = THREE.MathUtils;
 const ease = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 
@@ -81,6 +85,14 @@ export interface SceneProps {
 
 export default function Scene(props: SceneProps) {
   const [tex, setTex] = useState<Textures | null>(null);
+  const [parts, setParts] = useState<ZazosParts | null>(null);
+  const wantsObj = OBJ_LEADS.has(props.lead.slug);
+  useEffect(() => {
+    if (!wantsObj) return;
+    let off = false;
+    loadZazosParts().then((m) => !off && setParts(m)).catch((e) => console.error(e));
+    return () => { off = true; };
+  }, [wantsObj]);
   useEffect(() => {
     let off = false;
     buildTextures(props.lead, props.fontFamily).then((t) => !off && setTex(t));
@@ -100,13 +112,13 @@ export default function Scene(props: SceneProps) {
       }}
     >
       <Lights lead={props.lead} />
-      {tex && <World {...props} tex={tex} />}
+      {tex && (!wantsObj || parts) && <World {...props} tex={tex} parts={parts} />}
     </Canvas>
   );
 }
 
 /* ---------- luz e reflexos premium (sem HDR externo) ---------- */
-function Lights({ lead }: { lead: LeadData }) {
+export function Lights({ lead }: { lead: LeadData }) {
   const { accent } = lead.theme;
   return (
     <>
@@ -129,7 +141,7 @@ function Lights({ lead }: { lead: LeadData }) {
 }
 
 /* ---------- mundo ---------- */
-function World(p: SceneProps & { tex: Textures }) {
+function World(p: SceneProps & { tex: Textures; parts: ZazosParts | null }) {
   const pulse = useRef([0, 0, 0, 0]);
   const reg = useRef<(BState | null)[]>([null, null, null, null]);
   return (
@@ -139,12 +151,12 @@ function World(p: SceneProps & { tex: Textures }) {
         <planeGeometry args={[60, 60]} />
         <shadowMaterial transparent opacity={0.5} />
       </mesh>
-      <Tray tex={p.tex} lead={p.lead} placed={p.placed} pulse={pulse} />
+      <Tray parts={p.parts} tex={p.tex} lead={p.lead} placed={p.placed} pulse={pulse} />
       {p.lead.tools.map((t, i) => (
-        <Block key={i} i={i} color={t.color} tex={p.tex} stage={p.stage} pulse={pulse} reg={reg}
+        <Block key={i} i={i} parts={p.parts} color={t.color} tex={p.tex} stage={p.stage} pulse={pulse} reg={reg}
           onPlaced={p.onPlaced} onWrong={p.onWrong} onHover={p.onHover} />
       ))}
-      <BoxMesh lead={p.lead} tex={p.tex} stage={p.stage} onOpen={p.onOpen} onReady={p.onReady} />
+      <BoxMesh parts={p.parts} lead={p.lead} tex={p.tex} stage={p.stage} onOpen={p.onOpen} onReady={p.onReady} />
       {p.stage === "done" && (
         <Sparkles count={50} scale={[3.2, 1.6, 3.2]} position={[TRAY.x, 0.9, TRAY.z]} size={3.2} speed={0.45}
           color={p.lead.theme.bolt} opacity={0.9} />
@@ -154,7 +166,7 @@ function World(p: SceneProps & { tex: Textures }) {
 }
 
 /* ---------- câmera responsiva com parallax ---------- */
-function Rig({ stage, side, inset }: { stage: Stage; side: boolean; inset: number }) {
+export function Rig({ stage, side, inset }: { stage: Stage; side: boolean; inset: number }) {
   const { camera, size } = useThree();
   const look = useRef(new THREE.Vector3(0, 0, -2.6));
   const zoom = useRef(1);
@@ -207,7 +219,7 @@ function Rig({ stage, side, inset }: { stage: Stage; side: boolean; inset: numbe
 }
 
 /* ---------- caixa kraft ---------- */
-function BoxMesh(p: { lead: LeadData; tex: Textures; stage: Stage; onOpen: () => void; onReady: () => void }) {
+function BoxMesh(p: { parts: ZazosParts | null; lead: LeadData; tex: Textures; stage: Stage; onOpen: () => void; onReady: () => void }) {
   const group = useRef<THREE.Group>(null!);
   const body = useRef<THREE.Mesh>(null!);
   const lid = useRef<THREE.Group>(null!);
@@ -237,8 +249,8 @@ function BoxMesh(p: { lead: LeadData; tex: Textures; stage: Stage; onOpen: () =>
     const lp = ease(clamp(e / 0.9, 0, 1));
     lid.current.position.set(0, 1.275 + 1.5 * lp, -1.3 * lp);
     lid.current.rotation.x = -0.5 * lp;
-    lidMat.current.opacity = 1 - lp;
-    logoMat.current.opacity = 1 - lp;
+    if (p.parts) p.parts.lidMats.forEach((m) => { m.transparent = lp > 0; m.opacity = 1 - lp; });
+    else { lidMat.current.opacity = 1 - lp; logoMat.current.opacity = 1 - lp; }
     lid.current.visible = lp < 1;
 
     const sp = ease(clamp((e - 1.2) / 0.7, 0, 1));
@@ -260,6 +272,16 @@ function BoxMesh(p: { lead: LeadData; tex: Textures; stage: Stage; onOpen: () =>
 
   return (
     <group ref={group} position={TRAY} onClick={click} onPointerOver={over} onPointerOut={out}>
+      {p.parts ? (
+        <>
+          <group ref={body as unknown as React.RefObject<THREE.Group>} position-y={0.55}>
+            <primitive object={p.parts.caixa} />
+          </group>
+          <group ref={lid} position-y={1.275}>
+            <primitive object={p.parts.tampa} />
+          </group>
+        </>
+      ) : (<>
       <RoundedBox ref={body} args={[2.9, 1.1, 2.9]} radius={0.06} smoothness={4} position-y={0.55} castShadow receiveShadow>
         <meshPhysicalMaterial color={theme.box} roughness={0.85} sheen={0.6} sheenColor="#f2d3a4" />
       </RoundedBox>
@@ -273,12 +295,13 @@ function BoxMesh(p: { lead: LeadData; tex: Textures; stage: Stage; onOpen: () =>
             polygonOffset polygonOffsetFactor={-2} polygonOffsetUnits={-2} />
         </mesh>
       </group>
+      </>)}
     </group>
   );
 }
 
 /* ---------- bandeja ---------- */
-function Tray(p: { lead: LeadData; tex: Textures; placed: boolean[]; pulse: React.MutableRefObject<number[]> }) {
+function Tray(p: { parts: ZazosParts | null; lead: LeadData; tex: Textures; placed: boolean[]; pulse: React.MutableRefObject<number[]> }) {
   const ghosts = useRef<(THREE.Mesh | null)[]>([]);
   const mat = <meshPhysicalMaterial color={p.lead.theme.tray} roughness={0.55} clearcoat={0.25} clearcoatRoughness={0.4} />;
   const part = (w: number, h: number, d: number, x: number, y: number, z: number, k: string) => (
@@ -299,14 +322,15 @@ function Tray(p: { lead: LeadData; tex: Textures; placed: boolean[]; pulse: Reac
 
   return (
     <group position={TRAY}>
-      {part(2.32, 0.08, 2.32, 0, 0.04, 0, "b")}
-      {part(2.32, 0.2, 0.08, 0, 0.1, -1.12, "n")}
-      {part(2.32, 0.2, 0.08, 0, 0.1, 1.12, "s")}
-      {part(0.08, 0.2, 2.32, -1.12, 0.1, 0, "w")}
-      {part(0.08, 0.2, 2.32, 1.12, 0.1, 0, "e")}
-      {part(0.08, 0.2, 2.16, 0, 0.1, 0, "v")}
-      {part(2.16, 0.2, 0.08, 0, 0.1, 0, "h")}
-      {OFFS.map(([x, z], i) => (
+      {p.parts && <primitive object={p.parts.bandeja} />}
+      {!p.parts && part(2.32, 0.08, 2.32, 0, 0.04, 0, "b")}
+      {!p.parts && part(2.32, 0.2, 0.08, 0, 0.1, -1.12, "n")}
+      {!p.parts && part(2.32, 0.2, 0.08, 0, 0.1, 1.12, "s")}
+      {!p.parts && part(0.08, 0.2, 2.32, -1.12, 0.1, 0, "w")}
+      {!p.parts && part(0.08, 0.2, 2.32, 1.12, 0.1, 0, "e")}
+      {!p.parts && part(0.08, 0.2, 2.16, 0, 0.1, 0, "v")}
+      {!p.parts && part(2.16, 0.2, 0.08, 0, 0.1, 0, "h")}
+      {!p.parts && OFFS.map(([x, z], i) => (
         <mesh key={i} ref={(m) => { ghosts.current[i] = m; }} rotation-x={-Math.PI / 2} position={[x, 0.086, z]}
           visible={!p.placed[i]}>
           <planeGeometry args={[0.94, 0.94]} />
@@ -333,7 +357,7 @@ function freeSpot(i: number, reg: (BState | null)[]): { x: number; z: number; ow
 
 /* ---------- bloco arrastável ---------- */
 function Block(p: {
-  i: number; color: string; tex: Textures; stage: Stage;
+  parts: ZazosParts | null; i: number; color: string; tex: Textures; stage: Stage;
   pulse: React.MutableRefObject<number[]>; reg: React.MutableRefObject<(BState | null)[]>;
   onPlaced: (i: number) => void; onWrong: () => void; onHover?: (i: number | null) => void;
 }) {
@@ -367,6 +391,7 @@ function Block(p: {
     root.current.position.copy(s.to);
     root.current.rotation.y = s.ry;
     flipper.current.rotation.x = s.flip;
+    if (p.parts) { const bm = p.parts.blocoMats[i]; bm.emissive.copy(bm.color); bm.emissiveIntensity = 0; }
     p.reg.current[i] = s; // registro compartilhado para colisão
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -415,7 +440,8 @@ function Block(p: {
     }
     if (s.doneAt > 0) {
       const e = performance.now() / 1000 - s.doneAt;
-      mat.current.emissiveIntensity = 0.55 * Math.exp(-e * 2.2);
+      const bm = p.parts ? p.parts.blocoMats[i] : mat.current;
+      bm.emissiveIntensity = 0.55 * Math.exp(-e * 2.2);
     }
   });
 
@@ -485,6 +511,10 @@ function Block(p: {
   return (
     <group ref={root} onPointerDown={onDown} onPointerOver={over} onPointerOut={out}>
       <group ref={flipper}>
+        {p.parts ? (
+          // o .obj vem com o logo para cima: gira PI para o ícone ficar para cima no estado inicial
+          <group rotation-x={Math.PI}><primitive object={p.parts.blocos[i]} /></group>
+        ) : (<>
         <RoundedBox args={[1, 0.26, 1]} radius={0.07} smoothness={5} castShadow receiveShadow>
           <meshPhysicalMaterial ref={mat} color={p.color} roughness={0.32} clearcoat={0.85} clearcoatRoughness={0.22}
             emissive={p.color} emissiveIntensity={0} />
@@ -499,6 +529,7 @@ function Block(p: {
           <meshStandardMaterial map={p.tex.quads[i]} transparent roughness={0.5}
             polygonOffset polygonOffsetFactor={-2} polygonOffsetUnits={-2} />
         </mesh>
+        </>)}
       </group>
     </group>
   );

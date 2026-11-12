@@ -76,6 +76,8 @@ const pieces: Piece[] = [
     id: "roda",
     name: "A Roda",
     kind: "assemble",
+    model: "wheel",
+    center: "Clínica",
     teaser: "Quatro pilares do Método RODA, com o nome do cliente no centro.",
     tools: roda as Piece["tools"],
     copy: {

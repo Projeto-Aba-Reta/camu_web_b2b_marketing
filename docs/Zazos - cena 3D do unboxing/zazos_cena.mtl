@@ -1,0 +1,200 @@
+newmtl caixa_kraft
+Kd 0.7255 0.5451 0.3529
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 12
+d 1
+illum 2
+
+newmtl tampa_kraft
+Kd 0.7686 0.6039 0.4078
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 14
+d 1
+illum 2
+
+newmtl creme
+Kd 0.9647 0.9216 0.8275
+Ka 0 0 0
+Ks 0.1 0.1 0.1
+Ns 20
+d 1
+illum 2
+
+newmtl raio
+Kd 1.0000 0.8235 0.3529
+Ka 0 0 0
+Ks 0.2 0.2 0.2
+Ns 40
+d 1
+illum 2
+
+newmtl bandeja
+Kd 0.8902 0.8118 0.6431
+Ka 0 0 0
+Ks 0.25 0.25 0.25
+Ns 60
+d 1
+illum 2
+
+newmtl bloco_planilha
+Kd 0.8510 0.3490 0.2392
+Ka 0 0 0
+Ks 0.6 0.6 0.6
+Ns 120
+d 1
+illum 2
+
+newmtl bloco_icone_planilha
+Kd 0.3875 0.1631 0.1051
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2
+
+newmtl encaixe_fundo_planilha
+Kd 0.8824 0.7192 0.5624
+Ka 0 0 0
+Ks 0.1 0.1 0.1
+Ns 40
+d 1
+illum 2
+
+newmtl encaixe_linha_planilha
+Kd 0.8549 0.3953 0.2796
+Ka 0 0 0
+Ks 0.1 0.1 0.1
+Ns 40
+d 1
+illum 2
+
+newmtl encaixe_icone_planilha
+Kd 0.8667 0.5341 0.4008
+Ka 0 0 0
+Ks 0.1 0.1 0.1
+Ns 40
+d 1
+illum 2
+
+newmtl bloco_ponto
+Kd 0.9137 0.6980 0.2275
+Ka 0 0 0
+Ks 0.6 0.6 0.6
+Ns 120
+d 1
+illum 2
+
+newmtl bloco_icone_ponto
+Kd 0.4125 0.3027 0.1004
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2
+
+newmtl encaixe_fundo_ponto
+Kd 0.8949 0.7890 0.5600
+Ka 0 0 0
+Ks 0.1 0.1 0.1
+Ns 40
+d 1
+illum 2
+
+newmtl encaixe_linha_ponto
+Kd 0.9114 0.7094 0.2690
+Ka 0 0 0
+Ks 0.1 0.1 0.1
+Ns 40
+d 1
+illum 2
+
+newmtl encaixe_icone_ponto
+Kd 0.9043 0.7435 0.3937
+Ka 0 0 0
+Ks 0.1 0.1 0.1
+Ns 40
+d 1
+illum 2
+
+newmtl bloco_calendario
+Kd 0.1843 0.5608 0.5137
+Ka 0 0 0
+Ks 0.6 0.6 0.6
+Ns 120
+d 1
+illum 2
+
+newmtl bloco_icone_calendario
+Kd 0.1208 0.2478 0.2149
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2
+
+newmtl encaixe_fundo_calendario
+Kd 0.7490 0.7616 0.6173
+Ka 0 0 0
+Ks 0.1 0.1 0.1
+Ns 40
+d 1
+illum 2
+
+newmtl encaixe_linha_calendario
+Kd 0.2549 0.5859 0.5267
+Ka 0 0 0
+Ks 0.1 0.1 0.1
+Ns 40
+d 1
+illum 2
+
+newmtl encaixe_icone_calendario
+Kd 0.4667 0.6612 0.5655
+Ka 0 0 0
+Ks 0.1 0.1 0.1
+Ns 40
+d 1
+illum 2
+
+newmtl bloco_pasta
+Kd 0.3569 0.2941 0.6039
+Ka 0 0 0
+Ks 0.6 0.6 0.6
+Ns 120
+d 1
+illum 2
+
+newmtl bloco_icone_pasta
+Kd 0.1898 0.1412 0.2510
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2
+
+newmtl encaixe_fundo_pasta
+Kd 0.7835 0.7082 0.6353
+Ka 0 0 0
+Ks 0.1 0.1 0.1
+Ns 40
+d 1
+illum 2
+
+newmtl encaixe_linha_pasta
+Kd 0.4102 0.3459 0.6078
+Ka 0 0 0
+Ks 0.1 0.1 0.1
+Ns 40
+d 1
+illum 2
+
+newmtl encaixe_icone_pasta
+Kd 0.5702 0.5012 0.6196
+Ka 0 0 0
+Ks 0.1 0.1 0.1
+Ns 40
+d 1
+illum 2
+

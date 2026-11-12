@@ -126,6 +126,9 @@ export interface Pricing {
 
 export type PieceKind = "assemble" | "light";
 
+/** Modelo 3D do fluxo "assemble": blocos quadrados numa bandeja, ou roda de 4 setores com tampa central. */
+export type AssembleModel = "blocks" | "wheel";
+
 /** Peça "acenda": negatoscópio com calendário que se preenche (fluxo `kind: "light"`). */
 export interface LightConfig {
   /** título gravado na chapa */
@@ -165,6 +168,10 @@ export interface Piece {
   teaser: string;
   /** (assemble) os 4 blocos */
   tools?: [Tool, Tool, Tool, Tool];
+  /** (assemble) modelo 3D; padrão: "blocks" */
+  model?: AssembleModel;
+  /** (wheel) texto da tampa central, que trava os setores (ex.: nome do cliente) */
+  center?: string;
   /** (light) conteúdo da peça */
   light?: LightConfig;
   /** textos que sobrescrevem os do lead nesta peça */
